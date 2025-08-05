@@ -1,75 +1,97 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import './Home.css';
 
-const Home = () => {
-  const [price, setPrice] = useState(null);
-  const [name, setName] = useState('');
-  const [submittedName, setSubmittedName] = useState('');
-  const socket = useRef(null);
+const Home = ({ onStockNameChange }) => {
+  const [symbol, setSymbol] = useState("AAPL");
+  const [stockData, setStockData] = useState(null);
+  const [error, setError] = useState("");
+  const [liveData, setLiveData] = useState(null);
 
-  useEffect(() => {
-    if (!submittedName) return;
+  const fetchStockData = () => {
+    setError(""); 
+    setStockData(null); 
 
-    // Reset price on new subscription
-    setPrice(null);
+    fetch(`https://api.twelvedata.com/quote?symbol=${symbol}&apikey=c2f2da4c72db4d1d83e371cc66d718dc`)
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("API response:", data);
 
-    socket.current = new WebSocket('wss://ws.finnhub.io?token=d28aqa1r01qjsuf29afgd28aqa1r01qjsuf29ag0');
+        if (data.code || data.status === "error") {
+          setError(data.message || "Something went wrong");
+          return;
+        }
 
-    socket.current.onopen = () => {
-      socket.current.send(JSON.stringify({ type: 'subscribe', symbol: submittedName.toUpperCase() }));
-    };
+        const extracted = {
+          name: data.name,
+          symbol: data.symbol,
+          exchange: data.exchange,
+          currency: data.currency,
+          datetime: data.datetime,
+          open: data.open,
+          high: data.high,
+          low: data.low,
+          close: data.close,
+          percent_change: data.percent_change,
+        };
+        setStockData(extracted);
+      })
+      .catch((err) => {
+        console.error("Fetch error:", err);
+        setError("Failed to fetch stock data");
+      });
+  };
 
-    socket.current.onmessage = (event) => {
-      const message = JSON.parse(event.data);
-      if (message.type === 'trade') {
-        const latestPrice = message.data[0]?.p;
-        if (latestPrice) setPrice(latestPrice);
-      }
-    };
+  function getLiveDate(){
+    fetch(`https://api.twelvedata.com/price?symbol=${symbol}&apikey=c2f2da4c72db4d1d83e371cc66d718dc&interval`)
+  .then((res) => res.json())
+      .then((data) => {
+        console.log("API response:", data);
 
-    socket.current.onerror = (err) => console.error('WebSocket error:', err);
-    socket.current.onclose = () => console.log('WebSocket closed');
+        if (data.code || data.status === "error") {
+          setError(data.message || "Something went wrong");
+          return;
+        }
 
-    return () => {
-      if (socket.current && socket.current.readyState === WebSocket.OPEN) {
-        socket.current.send(JSON.stringify({ type: 'unsubscribe', symbol: submittedName.toUpperCase() }));
-        socket.current.close();
-      }
-    };
-  }, [submittedName]);
-
-  const handleSearch = () => {
-    // Trigger subscription change by updating submittedName
-    setSubmittedName(name.trim());
+        const extractedLive = {
+          price: data.price,
+        };
+        setLiveData(extractedLive);
+        onStockNameChange(symbol);
+      })
+      .catch((err) => {
+        console.error("Fetch error:", err);
+        setError("Failed to fetch stock data");
+      });
   };
 
   return (
     <div className="usercontainer">
-      <h1>CHARTS</h1>
+      <h1>📈 Stock Info</h1>
 
-      <div className="usercontainer-text">
-        <p>Get Realtime Chart</p>
-        <p>updates and much</p>
-        <p>more!!!!</p>
-      </div>
+      <input
+        type="text"
+        value={symbol}
+        onChange={(e) => setSymbol(e.target.value.toUpperCase())}
+        placeholder="Enter stock symbol (e.g., AAPL)"
+      />
+      <button onClick={getLiveDate} className="btn" >Search</button>
 
-      <div className="usercontainer-input">
-        <input
-          type="text"
-          id="user-input"
-          placeholder="Enter the stock symbol (e.g. AAPL)"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-        <button type="button" className="btn" onClick={handleSearch}>
-          Search
-        </button>
-      </div>
+      {error && <p style={{ color: "red", marginTop: "10px" }}>{error}</p>}
 
-      <div style={{ marginTop: 20 }}>
-        <h2>Live Price:</h2>
-        {price !== null ? <p>${price.toFixed(2)}</p> : <p>No data</p>}
-      </div>
+      {liveData && (
+        <div style={{ marginTop: "20px", border: "1px solid #ccc", padding: "15px", borderRadius: "8px" }}>
+          {/* <h2>{stockData.name} ({stockData.symbol})</h2>
+          <p><strong>Exchange:</strong> {stockData.exchange}</p>5
+          <p><strong>Currency:</strong> {stockData.currency}</p>
+          <p><strong>Date:</strong> {stockData.datetime}</p>
+          <p><strong>Open:</strong> ${stockData.open}</p>
+          <p><strong>High:</strong> ${stockData.high}</p>
+          <p><strong>Low:</strong> ${stockData.low}</p>
+          <p><strong>Close:</strong> ${stockData.close}</p>
+          <p><strong>Change %:</strong> {parseFloat(stockData.percent_change).toFixed(2)}%</p> */}
+          <p><strong>Live Price:</strong> {liveData.price}</p>
+        </div>
+      )}
     </div>
   );
 };

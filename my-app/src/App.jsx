@@ -6,11 +6,10 @@ import './App.css'
 
 function App() {
   const [stockName, setStockName] = useState("");
-
   return (
     <>
       <Home onStockNameChange={setStockName}/>
-      <LineChart stockName={stockName}/>
+      {stockName && <LineChart stockName={stockName} />}
     </>
   )
 }

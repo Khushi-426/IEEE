@@ -1,6 +1,7 @@
 // LineChart.js
 import React, { useEffect, useRef, useState } from 'react';
 import Chart from 'chart.js/auto';
+import './LineChart.css'
 
 const LineChart = ({ stockName }) => {
   const canvasRef = useRef(null); // Reference to the canvas
@@ -78,12 +79,12 @@ const LineChart = ({ stockName }) => {
   }, [chartData, stockName]);
 
   return (
-    <div style={{ width: '700px', margin: '0 auto', paddingTop: '30px' }}>
-      <h2 style={{ color: "white" }}>
+    <div className="line-chart-container">
+      <h2>
         Line Chart for {stockName || "No stock selected yet"}
       </h2>
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      {error && <p>{error}</p>}
 
       <canvas ref={canvasRef}></canvas>
     </div>

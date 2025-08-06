@@ -1,0 +1,36 @@
+/* LineChart.css - Cool Theme */
+
+.line-chart-container {
+  width: 90%;
+  max-width: 800px;
+  margin: 40px auto;
+  background-color: #e6f7f9;
+  border-radius: 12px;
+  padding: 30px 40px;
+  box-shadow: 0 0 15px rgba(0, 150, 200, 0.15);
+  color: #1a1a1a;
+  transition: box-shadow 0.3s ease-in-out;
+}
+
+.line-chart-container:hover {
+  box-shadow: 0 0 25px rgba(0, 150, 200, 0.25);
+}
+
+.line-chart-container h2 {
+  color: #007e99;
+  font-size: 24px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.line-chart-container canvas {
+  width: 100% !important;
+  height: auto !important;
+}
+
+.error-message {
+  color: #d32f2f;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 15px;
+}

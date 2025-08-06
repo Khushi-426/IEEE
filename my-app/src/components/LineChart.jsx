@@ -1,20 +1,18 @@
-// LineChart.js
 import React, { useEffect, useRef, useState } from 'react';
 import Chart from 'chart.js/auto';
-import './LineChart.css'
+import './LineChart.css';
 
 const LineChart = ({ stockName }) => {
-  const canvasRef = useRef(null); // Reference to the canvas
-  const [chartData, setChartData] = useState([]); // Array of {datetime, close}
-  const [error, setError] = useState(""); // For error handling
+  const canvasRef = useRef(null);
+  const [chartData, setChartData] = useState([]);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (!stockName) return;
 
-    // Fetch historical time series data (not just one quote)
     const fetchData = async () => {
       try {
-        setError(""); // Clear previous errors
+        setError("");
         const response = await fetch(
           `https://api.twelvedata.com/time_series?symbol=${stockName}&interval=1day&apikey=c2f2da4c72db4d1d83e371cc66d718dc&outputsize=30`
         );
@@ -25,13 +23,12 @@ const LineChart = ({ stockName }) => {
           return;
         }
 
-        // Save only datetime and close price
         const extractedData = data.values.map(item => ({
           datetime: item.datetime,
           close: parseFloat(item.close),
         }));
 
-        setChartData(extractedData.reverse()); // Reverse for oldest to newest
+        setChartData(extractedData.reverse());
       } catch (err) {
         console.error("Fetch error:", err);
         setError("Failed to fetch stock data");
@@ -39,7 +36,7 @@ const LineChart = ({ stockName }) => {
     };
 
     fetchData();
-  }, [stockName]); // Re-run when stockName changes
+  }, [stockName]);
 
   useEffect(() => {
     if (!chartData.length) return;
@@ -54,39 +51,89 @@ const LineChart = ({ stockName }) => {
           {
             label: `${stockName} Closing Price`,
             data: chartData.map(item => item.close),
-            borderColor: 'blue',
-            backgroundColor: 'lightblue',
-            tension: 0.3, // smooth curves
+            borderColor: '#00cc66',
+            backgroundColor: 'rgba(0, 255, 153, 0.2)',
+            tension: 0.4,
+            pointRadius: 3,
+            pointBackgroundColor: '#00ff99',
           },
         ],
       },
       options: {
         responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            labels: {
+              color: '#ffffff',
+              font: {
+                size: 14,
+              },
+            },
+          },
+          title: {
+            display: true,
+            text: `Stock Price Movement: ${stockName}`,
+            color: '#ff4444',
+            font: {
+              size: 18,
+            },
+          },
+        },
         scales: {
           x: {
+            title: {
+              display: true,
+              text: 'Date',
+              color: '#ff4444',
+              font: {
+                size: 16,
+              },
+            },
             ticks: {
-              maxTicksLimit: 5,
+              color: '#cccccc',
+              maxTicksLimit: 6,
+            },
+            grid: {
+              color: 'rgba(255, 255, 255, 0.1)',
+            },
+          },
+          y: {
+            title: {
+              display: true,
+              text: 'Price (USD)',
+              color: '#ff4444',
+              font: {
+                size: 16,
+              },
+            },
+            ticks: {
+              color: '#cccccc',
+            },
+            grid: {
+              color: 'rgba(255, 255, 255, 0.1)',
             },
           },
         },
       },
     });
 
-    // Cleanup chart on unmount or update
     return () => {
       chartInstance.destroy();
     };
   }, [chartData, stockName]);
 
   return (
-    <div className="line-chart-container">
-      <h2>
-        Line Chart for {stockName || "No stock selected yet"}
+    <div className="chart-container">
+      <h2 className="chart-title">
+        {stockName ? `Line Chart for ${stockName}` : "No stock selected yet"}
       </h2>
 
-      {error && <p>{error}</p>}
+      {error && <p className="chart-error">{error}</p>}
 
-      <canvas ref={canvasRef}></canvas>
+      <div style={{ height: '400px' }}>
+        <canvas ref={canvasRef}></canvas>
+      </div>
     </div>
   );
 };

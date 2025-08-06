@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import './Home.css';
 
 const Home = ({ onStockNameChange }) => {
@@ -40,9 +40,10 @@ const Home = ({ onStockNameChange }) => {
         setError("Failed to fetch stock data");
       });
   };
+
   function getLiveDate(){
     fetch(`https://api.twelvedata.com/price?symbol=${symbol}&apikey=c2f2da4c72db4d1d83e371cc66d718dc&interval`)
-      .then((res) => res.json())
+  .then((res) => res.json())
       .then((data) => {
         console.log("API response:", data);
 
@@ -56,7 +57,6 @@ const Home = ({ onStockNameChange }) => {
         };
         setLiveData(extractedLive);
         onStockNameChange(symbol);
-        fetchStockData();
       })
       .catch((err) => {
         console.error("Fetch error:", err);
@@ -64,9 +64,13 @@ const Home = ({ onStockNameChange }) => {
       });
   };
 
+  const handleSearch = () => {
+  getLiveDate();      
+  fetchStockData();   };
+
   return (
     <div className="usercontainer">
-      <h1>📈 Charts</h1>
+      <h1>📈 Stock Info</h1>
 
       <input
         type="text"
@@ -74,27 +78,29 @@ const Home = ({ onStockNameChange }) => {
         onChange={(e) => setSymbol(e.target.value.toUpperCase())}
         placeholder="Enter stock symbol (e.g., AAPL)"
       />
-      <button onClick={getLiveDate} className="btn" >Search</button>
+     <button onClick={handleSearch} className="btn">Search</button>
 
-      {error && <p>{error}</p>}
+      {error && <p style={{ color: "red", marginTop: "10px" }}>{error}</p>}
 
       {liveData && (
-        <div className="live-price">
-          <p><strong>Live Price:</strong> {liveData.price}</p>
-        </div>
-      )}
-      {stockData && (
-        <div className="stock-details">
-          <h2>{stockData.name} ({stockData.symbol})</h2>
-          <p><strong>Exchange:</strong> {stockData.exchange}</p>
-          <p><strong>Currency:</strong> {stockData.currency}</p>
-          <p><strong>Date:</strong> {stockData.datetime}</p>
-          <p><strong>High:</strong> ${stockData.high}</p>
-          <p><strong>Low:</strong> ${stockData.low}</p>
-          <p><strong>Close:</strong> ${stockData.close}</p>
-          <p><strong>Change %:</strong> {parseFloat(stockData.percent_change).toFixed(2)}%</p>
-        </div>
-      )}
+          <div className="live-price-container">
+            <p><strong>Live Price:</strong> {liveData.price}</p>
+          </div>
+)}
+
+    {stockData && (
+      <div className="stock-info-container">
+        <h2>{stockData.name} ({stockData.symbol})</h2>
+        <p><strong>Exchange:</strong> {stockData.exchange}</p>
+        <p><strong>Currency:</strong> {stockData.currency}</p>
+        <p><strong>Date:</strong> {stockData.datetime}</p>
+        <p><strong>High:</strong> ${stockData.high}</p>
+        <p><strong>Low:</strong> ${stockData.low}</p>
+        <p><strong>Close:</strong> ${stockData.close}</p>
+        <p><strong>Change %:</strong> {parseFloat(stockData.percent_change).toFixed(2)}%</p>
+      </div>
+    )}
+
     </div>
   );
 };

@@ -3,59 +3,79 @@ import Chart from 'chart.js/auto';
 import './LineChart.css';
 
 const LineChart = ({ stockName }) => {
-  const canvasRef = useRef(null);
-  const [chartData, setChartData] = useState([]);
-  const [error, setError] = useState("");
+  const canvasRef = useRef(null);             // Reference to the canvas element
+  const [chart, setChart] = useState(null);   // Chart instance
+  const [data, setData] = useState([]);       // Chart data
+  const [error, setError] = useState("");     // Error message
 
+  // Fetch stock data when stockName changes
   useEffect(() => {
     if (!stockName) return;
 
-    const fetchData = async () => {
+    const fetchStockData = async () => {
+      setError(""); // Clear previous errors
+
       try {
-        setError("");
         const response = await fetch(
           `https://api.twelvedata.com/time_series?symbol=${stockName}&interval=1day&apikey=c2f2da4c72db4d1d83e371cc66d718dc&outputsize=30`
         );
-        const data = await response.json();
 
-        if (data.status === "error" || data.code) {
-          setError(data.message || "Something went wrong");
+        const json = await response.json();
+
+        if (json.status === "error" || json.code) {
+          setError(json.message || "Something went wrong");
           return;
         }
 
-        const extractedData = data.values.map(item => ({
-          datetime: item.datetime,
-          close: parseFloat(item.close),
-        }));
+        const formattedData = json.values.map(item => ({
+          date: item.datetime,
+          price: parseFloat(item.close),
+        })).reverse();
 
-        setChartData(extractedData.reverse());
+        setData(formattedData);
+
       } catch (err) {
-        console.error("Fetch error:", err);
+        console.error(err);
         setError("Failed to fetch stock data");
       }
     };
 
-    fetchData();
+    fetchStockData();
   }, [stockName]);
 
+  // Create chart when data changes
   useEffect(() => {
-    if (!chartData.length) return;
+    if (data.length === 0) return;
+
+    // Destroy previous chart if it exists
+    if (chart) {
+      chart.destroy();
+    }
 
     const ctx = canvasRef.current;
 
-    const chartInstance = new Chart(ctx, {
+    const newChart = new Chart(ctx, {
       type: 'line',
       data: {
-        labels: chartData.map(item => item.datetime),
+        labels: data.map(item => item.date),
         datasets: [
           {
             label: `${stockName} Closing Price`,
-            data: chartData.map(item => item.close),
+            data: data.map(item => item.price),
             borderColor: '#00cc66',
             backgroundColor: 'rgba(0, 255, 153, 0.2)',
             tension: 0.4,
             pointRadius: 3,
             pointBackgroundColor: '#00ff99',
+
+            // 🔴 Red line when price drops
+            segment: {
+              borderColor: ctx => {
+                const current = ctx.p0.parsed.y;
+                const next = ctx.p1.parsed.y;
+                return next < current ? 'red' : '#00cc66';
+              },
+            },
           },
         ],
       },
@@ -66,18 +86,14 @@ const LineChart = ({ stockName }) => {
           legend: {
             labels: {
               color: '#ffffff',
-              font: {
-                size: 14,
-              },
+              font: { size: 14 },
             },
           },
           title: {
             display: true,
             text: `Stock Price Movement: ${stockName}`,
             color: '#ff4444',
-            font: {
-              size: 18,
-            },
+            font: { size: 18 },
           },
         },
         scales: {
@@ -86,9 +102,7 @@ const LineChart = ({ stockName }) => {
               display: true,
               text: 'Date',
               color: '#ff4444',
-              font: {
-                size: 16,
-              },
+              font: { size: 16 },
             },
             ticks: {
               color: '#cccccc',
@@ -103,9 +117,7 @@ const LineChart = ({ stockName }) => {
               display: true,
               text: 'Price (USD)',
               color: '#ff4444',
-              font: {
-                size: 16,
-              },
+              font: { size: 16 },
             },
             ticks: {
               color: '#cccccc',
@@ -118,10 +130,11 @@ const LineChart = ({ stockName }) => {
       },
     });
 
+    setChart(newChart);
     return () => {
-      chartInstance.destroy();
+      newChart.destroy();
     };
-  }, [chartData, stockName]);
+  }, [data, stockName]);
 
   return (
     <div className="chart-container">

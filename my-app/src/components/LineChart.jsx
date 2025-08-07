@@ -16,7 +16,7 @@ const LineChart = ({ stockName }) => {
 
       try {
         const response = await fetch(
-          `https://api.twelvedata.com/time_series?symbol=${stockName}&interval=1day&apikey=demo&outputsize=30`
+          `https://api.twelvedata.com/time_series?symbol=${stockName}&interval=1day&apikey=c2f2da4c72db4d1d83e371cc66d718dc&outputsize=30`
         );
 
         const json = await response.json();

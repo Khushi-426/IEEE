@@ -3,12 +3,11 @@ import Chart from 'chart.js/auto';
 import './LineChart.css';
 
 const LineChart = ({ stockName }) => {
-  const canvasRef = useRef(null);             // Reference to the canvas element
-  const [chart, setChart] = useState(null);   // Chart instance
-  const [data, setData] = useState([]);       // Chart data
-  const [error, setError] = useState("");     // Error message
-
-  // Fetch stock data when stockName changes
+  const canvasRef = useRef(null);             
+  const [chart, setChart] = useState(null);   
+  const [data, setData] = useState([]);       
+  const [error, setError] = useState("");     
+  
   useEffect(() => {
     if (!stockName) return;
 
@@ -17,7 +16,7 @@ const LineChart = ({ stockName }) => {
 
       try {
         const response = await fetch(
-          `https://api.twelvedata.com/time_series?symbol=${stockName}&interval=1day&apikey=c2f2da4c72db4d1d83e371cc66d718dc&outputsize=30`
+          `https://api.twelvedata.com/time_series?symbol=${stockName}&interval=1day&apikey=demo&outputsize=30`
         );
 
         const json = await response.json();
@@ -43,11 +42,11 @@ const LineChart = ({ stockName }) => {
     fetchStockData();
   }, [stockName]);
 
-  // Create chart when data changes
+  
   useEffect(() => {
     if (data.length === 0) return;
 
-    // Destroy previous chart if it exists
+    
     if (chart) {
       chart.destroy();
     }
@@ -68,7 +67,7 @@ const LineChart = ({ stockName }) => {
             pointRadius: 3,
             pointBackgroundColor: '#00ff99',
 
-            // 🔴 Red line when price drops
+           
             segment: {
               borderColor: ctx => {
                 const current = ctx.p0.parsed.y;

@@ -11,7 +11,7 @@ const Home = ({ onStockNameChange }) => {
     setError(""); 
     setStockData(null); 
 
-    fetch(`https://api.twelvedata.com/quote?symbol=${symbol}&apikey=c2f2da4c72db4d1d83e371cc66d718dc`)
+    fetch(`https://api.twelvedata.com/quote?symbol=${symbol}&apikey=demo`)
       .then((res) => res.json())
       .then((data) => {
         console.log("API response:", data);
@@ -42,7 +42,7 @@ const Home = ({ onStockNameChange }) => {
   };
 
   function getLiveDate(){
-    fetch(`https://api.twelvedata.com/price?symbol=${symbol}&apikey=c2f2da4c72db4d1d83e371cc66d718dc`)
+    fetch(`https://api.twelvedata.com/price?symbol=${symbol}&apikey=demo`)
   .then((res) => res.json())
       .then((data) => {
         console.log("API response:", data);
